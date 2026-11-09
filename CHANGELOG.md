@@ -1,0 +1,328 @@
+CHANGELOG
+=========
+
+7.1.0 (2026-07-16)
+------------------
+
+* A new `residential` property has been added to the `anonymizer` object in
+  the `Insights` response model. This contains residential proxy data for
+  the network and is available from the GeoIP2 Insights web service only.
+  The `residential` property may be populated even when no other
+  `anonymizer` properties are set. The `residential` object includes the
+  following properties:
+  * `confidence`: A score (1-99) representing MaxMind's confidence that the
+    network is an actively used residential proxy
+  * `networkLastSeen`: The last day (YYYY-MM-DD) the network was sighted in
+    our analysis of residential proxies
+  * `providerName`: The name of the residential proxy provider associated
+    with the network
+
+7.0.0 (2026-06-29)
+------------------
+
+* **Breaking** Dropped support for Node.js 18 and 20. Node.js 22 or greater is now
+* **Breaking** Dropped commonjs support. The package is now only available as an ES module.
+* **Breaking** Errors from the `WebServiceClient` are now thrown as
+  `WebServiceError` instances, which extend `Error`, rather than as plain
+  objects. The `code`, `error`, `status`, and `url` properties are preserved,
+  so existing field access continues to work, but the thrown value is now an
+  `Error`. The original error is now preserved as the standard `cause`
+  property (for example, the network error behind a `FETCH_ERROR`). The
+  `WebServiceError` class and the `WebServiceClientError` type are now exported
+  from the package.
+* The `code` property on `WebServiceError` and the `WebServiceClientError`
+  interface is now typed as `WebServiceErrorCode`
+  (`ClientErrorCode | (string & {})`) instead of `string`, providing
+  autocompletion for the client-generated codes while still accepting any
+  code returned by the web service. The `ClientErrorCode` and
+  `WebServiceErrorCode` types are exported from the package.
+* The `AddressNotFoundError`, `BadMethodCallError`, `InvalidDbBufferError`,
+  and `ValueError` classes now accept an optional `cause` and forward it to
+  `Error`. `Reader.openBuffer()` now preserves the underlying parsing error as
+  the `cause` of the `InvalidDbBufferError` it throws.
+* Added a `fetcher` option to the `WebServiceClient` options, allowing a
+  custom `fetch` implementation to be supplied (for example, to route requests
+  through a custom dispatcher or proxy, or for testing). It defaults to the
+  global `fetch`. The `WebServiceClientOptions` type is exported from the
+  package.
+
+6.3.4 (2025-11-25)
+------------------
+
+* Second attempt to fix doc publishing during release from GitHub.
+
+6.3.3 (2025-11-25)
+------------------
+
+* Doc publishing fix during release from GitHub.
+
+6.3.2 (2025-11-25)
+------------------
+
+* Second release attempt via Trusted Publishing.
+
+6.3.1 (2025-11-25)
+------------------
+
+* First release attempt via Trusted Publishing.
+
+6.3.0 (2025-11-20)
+------------------
+
+* A new `anonymizer` object has been added to the `Insights` response model.
+  This object contains information about anonymizing services and VPN providers
+  associated with an IP address. Available from the GeoIP2 Insights web service
+  only. The object includes the following properties:
+  * `confidence`: A score (1-99) representing percent confidence that the
+    network is part of an actively used VPN service
+  * `isAnonymous`: Indicates if the IP belongs to any anonymous network
+  * `isAnonymousVpn`: Identifies IPs registered to anonymous VPN providers
+  * `isHostingProvider`: Flags hosting/VPN providers used for anonymizing
+  * `isPublicProxy`: Identifies public proxy addresses
+  * `isResidentialProxy`: Detects suspected anonymizing networks on
+    residential ISPs
+  * `isTorExitNode`: Identifies Tor exit nodes
+  * `networkLastSeen`: The last day (YYYY-MM-DD) the network was sighted in
+    our analysis of anonymized networks
+  * `providerName`: The name of identified VPN providers (e.g., "NordVPN")
+* A new `ipRiskSnapshot` property has been added to the `traits` object.
+  This provides a risk score ranging from 0.01 to 99, with higher values
+  indicating greater risk. Available from the GeoIP2 Insights web service only.
+* The following properties in the `traits` object have been deprecated in
+  favor of the new `anonymizer` object. These properties will continue to work
+  but users should migrate to using the `anonymizer` object:
+  * `isAnonymous`
+  * `isAnonymousVpn`
+  * `isHostingProvider`
+  * `isPublicProxy`
+  * `isResidentialProxy`
+  * `isTorExitNode`
+* Added the `status` property to `WebServiceClientError`. This property
+  contains the HTTP status code when the error is the result of an HTTP
+  response error. Network errors (timeouts, fetch errors) will not have a
+  status code.
+
+6.2.0 (2025-10-07)
+------------------
+
+* Updated dependency `maxmind` to v5.0.0. This fixes an issue where an
+  older version of `maxmind` was technically allowed which did not support
+  GeoIP Anonymous Plus. Reported by Carlos Alberto Costa Beppler. GitHub #1587.
+
+6.1.0 (2025-05-05)
+------------------
+
+* Support for the GeoIP Anonymous Plus database has been added. To do a
+  lookup in this database, use the `anonymousPlus` method on the
+  database reader.
+
+6.0.0 (2025-02-18)
+------------------
+
+* **Breaking** Internal webservice calls now use Node's built-in `fetch` instead of `http`.  This
+  will affect users who are on unsupported versions of Node, specifically Node 17 and below.
+* Two new error codes have been added: `NETWORK_TIMEOUT` and `FETCH_ERROR`, second of which is returned
+  when there's a `fetch` related error that could not be handled by other errors.
+* The `ip6addr` dependency has been removed.
+* `metroCode` on `LocationRecord` has been marked deprecated. The code values
+  are no longer being updated.
+
+5.0.0 (2023-12-05)
+------------------
+
+* **Breaking** Drop node 16 support
+* The `isAnycast` attribute was added to `TraitsRecord`. This is `true` if
+  the IP address belongs to an [anycast
+  network](https://en.wikipedia.org/wiki/Anycast). This is available for the
+  GeoIP2 Country, City Plus, and Insights web services and the GeoIP2 Country,
+  City, and Enterprise databases.
+* The boolean attributes on the record models are no longer optional. We
+  set missing values to false during construction.
+
+4.2.0 (2023-07-27)
+------------------
+
+* Added `Satellite` to `ConnectionType` type.
+
+4.1.0 (2023-06-30)
+------------------
+
+* Update dependencies. Fixes issue #911
+
+4.0.0 (2023-05-16)
+------------------
+
+* **Breaking** Drop Node 14 support
+
+3.5.0 (2022-10-28)
+------------------
+
+* `consumer_privacy_network` was added to the type union for the `userType`
+  property in the `TraitsRecord` interface.
+* Address lodash security vulnerability.
+
+3.4.0 (2022-01-11)
+------------------
+
+* Upgrade dependencies
+* Support for mobile country code (MCC) and mobile network codes (MNC) was
+  added for the GeoIP2 ISP and Enterprise databases as well as the GeoIP2
+  City Plus and Insights web services. `mobileCountryCode` and
+  `mobileNetworkCode` attributes were added to `Isp` for the GeoIP2 ISP
+  database and `TraitsRecord` for the Enterprise database and the GeoIP2
+  City Plus and Insights web services. We expect this data to be available
+  by late January, 2022.
+
+3.3.0 (2021-11-29)
+------------------
+
+* Upgrade yarn dependencies
+
+3.2.0 (2021-08-17)
+------------------
+
+* Upgrade yarn dependencies
+
+3.1.0 (2021-07-08)
+------------------
+
+* Upgrade yarn dependencies
+
+3.0.0 (2021-06-03)
+------------------
+
+* **Breaking** Drop node 10 support
+* Upgrade yarn dependencies
+
+2.3.2 (2021-04-13)
+------------------
+
+* The `staticIpScore` property was incorrectly spelled `staticIPScore`.
+  This is now fixed. Reported by griffyn-showit. GitHub #402.
+* Upgrade yarn dependencies
+
+2.3.1 (2021-03-17)
+------------------
+
+* Upgrade yarn dependencies
+
+2.2.1 (2021-02-12)
+------------------
+
+* Upgrade yarn dependencies
+
+2.1.1 (2021-01-18)
+------------------
+
+* Upgrade yarn dependencies
+
+2.1.0 (2021-01-05)
+------------------
+
+* The `WebServiceClient` class now accepts an options object as the third
+  parameter. The currently valid options are `timeout` and `host`. To use the
+  GeoLite2 web service instead of GeoIP2 Precision, set `host` to
+  `geolite.info`. If you were previously passing the timeout as the third
+  parameter, this is deprecated and you should transition to passing it in
+  the options object.
+
+2.0.0 (2020-11-02)
+------------------
+
+### Breaking change
+
+* `country` and `city` values return `undefined` instead of `{}` when empty.
+
+1.6.0 (2020-09-29)
+------------------
+
+* Add the `isResidentialProxy` property to `AnonymousIP` and `TraitsRecord`
+  for use with the Anonymous IP database and GeoIP2 Precision Insights.
+
+1.5.0 (2020-08-07)
+------------------
+
+* Add `connection-type` to traits (Enterprise database)
+* Add API ts-doc documentation
+
+1.4.0 (2020-01-07)
+------------------
+
+* **Drop support for Node 8.**
+* A `network` property has been added to the various response models. This
+  represents the largest network where all the fields besides the IP address
+  are the same.
+* Add the `userCount` property to `TraitsRecord`. This is an integer which
+  indicates the estimated number of users sharing the IP/network during the
+  past 24 hours. This output is available from GeoIP2 Precision Insights.
+* Add the `staticIpScore` property to `TraitsRecord`. This is
+  a float which indicates how static or dynamic an IP address is. This
+  output is available from GeoIP2 Precision Insights.
+
+1.3.0 (2019-09-25)
+------------------
+
+* Upgrade yarn dependencies
+
+1.2.0 (2020-09-19)
+------------------
+
+* Upgrade yarn dependencies
+
+1.1.1 (2020-09-03)
+------------------
+
+* Fix path to types. GitHub #53.
+
+1.1.0 (2020-09-03)
+------------------
+
+* Upgrade yarn dependencies
+
+1.0.0 (2019-08-22)
+------------------
+
+* Fix user-agent header in request
+* Point package.json's main to dist/src/index.js
+
+0.6.0 (2019-06-04)
+------------------
+
+* Fix incorrect readerModel return type for country
+* Update yarn.lock modules
+
+0.5.0 (2019-04-15)
+------------------
+
+* Update yarn.lock modules
+
+0.4.0 (2018-01-11)
+------------------
+
+* Drop support for Node 6.
+* Fix export of models and record interfaces.
+
+0.3.0 (2018-01-02)
+------------------
+
+* Add web service API support.
+
+0.2.1 (2018-12-27)
+------------------
+
+* Fix Buffer documentation.
+
+0.2.0 (2018-12-21)
+------------------
+
+* Add ability to use Buffers instead of local db file.
+
+0.1.1 (2018-11-20)
+------------------
+
+* Fix release script.
+
+0.1.0 (2018-11-16)
+------------------
+
+* Initial release.

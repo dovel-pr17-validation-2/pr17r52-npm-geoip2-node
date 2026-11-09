@@ -1,0 +1,18 @@
+import { CityResponse } from '../types.js';
+import City from './City.js';
+
+/** Class representing the model of an "Enterprise" response **/
+export default class Enterprise extends City {
+  /**
+   * Instantiates an "Enterprise" using fields from the response
+   *
+   * @param response The GeoIP response
+   */
+  public constructor(
+    response: CityResponse,
+    ipAddress?: string,
+    network?: string
+  ) {
+    super(response, ipAddress, network);
+  }
+}

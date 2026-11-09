@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "isolatedModules": true,
+    "rootDir": "src"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": []
+}

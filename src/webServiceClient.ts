@@ -1,0 +1,279 @@
+import * as mmdb from 'maxmind';
+import packageInfo from '../package.json' with { type: 'json' };
+import { ValueError, WebServiceError } from './errors.js';
+import * as models from './models/index.js';
+import { ClientErrorCode } from './types.js';
+
+/** Options for the WebServiceClient constructor */
+export interface WebServiceClientOptions {
+  /** A custom `fetch` implementation to use for requests. Defaults to the
+   *  global `fetch`. This is primarily useful for testing or for routing
+   *  requests through a custom dispatcher or proxy. */
+  fetcher?: typeof fetch;
+  /** The host to use when connecting to the web service. The default is
+   *  "geoip.maxmind.com". To call the GeoLite web service instead of the
+   *  GeoIP web service, set this to "geolite.info". To call the Sandbox
+   *  GeoIP web service instead of the production GeoIP web service, set this
+   *  to "sandbox.maxmind.com". The sandbox allows you to experiment with the
+   *  API without affecting your production data.
+   */
+  host?: string;
+  /** The timeout. The default is 3000 */
+  timeout?: number;
+}
+type servicePath = 'city' | 'country' | 'insights';
+
+const invalidResponseBody = {
+  code: 'INVALID_RESPONSE_BODY',
+  error: 'Received an invalid or unparseable response body',
+} satisfies { code: ClientErrorCode; error: string };
+
+// Builds a WebServiceError for a client-generated failure. Typing `code` as the
+// closed `ClientErrorCode` (rather than the open `WebServiceErrorCode` the
+// WebServiceError constructor accepts) makes a typo at a throw site a compile
+// error and keeps the `ClientErrorCode` union in sync with what the client
+// actually emits.
+const clientError = (
+  properties: {
+    code: ClientErrorCode;
+    error: string;
+    status?: number;
+    url: string;
+  },
+  options?: { cause?: unknown }
+): WebServiceError => new WebServiceError(properties, options);
+
+const isErrorBody = (data: unknown): data is { code: string; error: string } =>
+  typeof data === 'object' &&
+  data !== null &&
+  typeof (data as Record<string, unknown>).code === 'string' &&
+  (data as Record<string, unknown>).code !== '' &&
+  typeof (data as Record<string, unknown>).error === 'string' &&
+  (data as Record<string, unknown>).error !== '';
+
+/** Class representing the WebServiceClient **/
+export default class WebServiceClient {
+  private accountID: string;
+  private licenseKey: string;
+  private timeout = 3000;
+  private host = 'geoip.maxmind.com';
+  private fetcher: typeof fetch = fetch;
+
+  /**
+   * Instantiates a WebServiceClient
+   *
+   * @param accountID The account ID
+   * @param licenseKey The license key
+   * @param options Additional option to use when connecting to the web
+   *                service. If you pass a number as the third parameter, it
+   *                will be treated as the timeout; however, passing in a number
+   *                should be considered deprecated and may be removed in a
+   *                future major version.
+   */
+  public constructor(
+    accountID: string,
+    licenseKey: string,
+    // We support a number, which will be treated as the timeout for historical
+    // reasons.
+    options?: WebServiceClientOptions | number
+  ) {
+    this.accountID = accountID;
+    this.licenseKey = licenseKey;
+    // `typeof null === 'object'`, so guard null alongside undefined to avoid
+    // dereferencing it in the options branch below.
+    if (options === undefined || options === null) {
+      return;
+    }
+
+    if (typeof options === 'object') {
+      // Validate member types up front so a JS caller passing e.g.
+      // `{ host: null }` gets a ValueError rather than a confusing failure
+      // later (a bad URL, a non-callable fetcher, or a NaN timeout signal).
+      if (options.fetcher !== undefined) {
+        if (typeof options.fetcher !== 'function') {
+          throw new ValueError('`fetcher` must be a function');
+        }
+        this.fetcher = options.fetcher;
+      }
+
+      if (options.host !== undefined) {
+        if (typeof options.host !== 'string') {
+          throw new ValueError('`host` must be a string');
+        }
+        this.host = options.host;
+      }
+
+      if (options.timeout !== undefined) {
+        if (
+          typeof options.timeout !== 'number' ||
+          !Number.isFinite(options.timeout)
+        ) {
+          throw new ValueError('`timeout` must be a finite number');
+        }
+        this.timeout = options.timeout;
+      }
+      return;
+    }
+
+    this.timeout = options;
+  }
+
+  /**
+   * Returns a Promise with the City Plus data for an IP address.
+   *
+   * @param ipAddress The IP Address you want to query the City Plus web
+   * service with
+   */
+  public city(ipAddress: string): Promise<models.City> {
+    return this.responseFor<models.City>('city', ipAddress, models.City);
+  }
+
+  /**
+   * Returns a Promise with the Country data for an IP address.
+   *
+   * @param ipAddress The IP Address you want to query the Country web service with
+   */
+  public country(ipAddress: string): Promise<models.Country> {
+    return this.responseFor<models.Country>(
+      'country',
+      ipAddress,
+      models.Country
+    );
+  }
+
+  /**
+   * Returns a Promise with the Insights data for an IP address.
+   *
+   * Insights is only supported by the GeoIP web service. It is not supported
+   * by the GeoLite web service.
+   *
+   * @param ipAddress The IP Address you want to query the Insights web service with
+   */
+  public insights(ipAddress: string): Promise<models.Insights> {
+    return this.responseFor<models.Insights>(
+      'insights',
+      ipAddress,
+      models.Insights
+    );
+  }
+
+  private async responseFor<T>(
+    path: servicePath,
+    ipAddress: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    modelClass: any
+  ): Promise<T> {
+    const parsedPath = `/geoip/v2.1/${path}/${ipAddress}`;
+    const url = `https://${this.host}${parsedPath}`;
+
+    if (!mmdb.validate(ipAddress)) {
+      throw clientError({
+        code: 'IP_ADDRESS_INVALID',
+        error: 'The IP address provided is invalid',
+        url,
+      });
+    }
+
+    const options: RequestInit = {
+      headers: {
+        Accept: 'application/json',
+        Authorization: 'Basic ' + btoa(`${this.accountID}:${this.licenseKey}`),
+        'User-Agent': `GeoIP2-node/${packageInfo.version}`,
+      },
+      method: 'GET',
+      signal: AbortSignal.timeout(this.timeout),
+    };
+
+    let response;
+    try {
+      response = await this.fetcher(url, options);
+    } catch (err) {
+      const error =
+        err instanceof Error || err instanceof DOMException
+          ? err
+          : new Error(String(err));
+      if (error.name === 'TimeoutError') {
+        throw clientError(
+          {
+            code: 'NETWORK_TIMEOUT',
+            error: 'The request timed out',
+            url,
+          },
+          { cause: error }
+        );
+      }
+      // Include the underlying cause's message in the error string so the
+      // reason (e.g. a DNS or connection failure) is visible to consumers that
+      // only log `code`/`error`, not just available via `cause`.
+      const causeDetail =
+        error.cause instanceof Error ? `: ${error.cause.message}` : '';
+      throw clientError(
+        {
+          code: 'FETCH_ERROR',
+          error: `${error.name} - ${error.message}${causeDetail}`,
+          url,
+        },
+        { cause: error }
+      );
+    }
+
+    if (!response.ok) {
+      throw await this.handleError(response, url);
+    }
+
+    let data;
+    try {
+      data = await response.json();
+    } catch (err) {
+      throw clientError({ ...invalidResponseBody, url }, { cause: err });
+    }
+
+    return new modelClass(data);
+  }
+
+  private async handleError(
+    response: Response,
+    url: string
+  ): Promise<WebServiceError> {
+    const status = response.status;
+
+    if (status && status >= 500 && status < 600) {
+      return clientError({
+        code: 'SERVER_ERROR',
+        error: `Received a server error with HTTP status code: ${status}`,
+        status,
+        url,
+      });
+    }
+
+    if (status && (status < 400 || status >= 600)) {
+      return clientError({
+        code: 'HTTP_STATUS_CODE_ERROR',
+        error: `Received an unexpected HTTP status code: ${status}`,
+        status,
+        url,
+      });
+    }
+
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch (err) {
+      return clientError(
+        { ...invalidResponseBody, status, url },
+        { cause: err }
+      );
+    }
+
+    if (!isErrorBody(data)) {
+      return clientError({ ...invalidResponseBody, status, url });
+    }
+
+    return new WebServiceError({
+      code: data.code,
+      error: data.error,
+      status,
+      url,
+    });
+  }
+}

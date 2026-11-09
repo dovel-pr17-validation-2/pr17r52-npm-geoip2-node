@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "allowJs": true
+  },
+  "exclude": [],
+  "extends": "./tsconfig.json",
+  "include": ["src", "e2e", "**/*.spec.ts"]
+}

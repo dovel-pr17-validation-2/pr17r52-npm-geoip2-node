@@ -1,0 +1,149 @@
+{
+  "city": {
+    "confidence": 25,
+    "geoname_id": 54321,
+    "names": {
+      "de": "Los Angeles",
+      "en": "Los Angeles",
+      "es": "Los Ángeles",
+      "fr": "Los Angeles",
+      "ja": "ロサンゼルス市",
+      "pt-BR": "Los Angeles",
+      "ru": "Лос-Анджелес",
+      "zh-CN": "洛杉矶"
+    }
+  },
+  "continent": {
+    "code": "NA",
+    "geoname_id": 123456,
+    "names": {
+      "de": "Nordamerika",
+      "en": "North America",
+      "es": "América del Norte",
+      "fr": "Amérique du Nord",
+      "ja": "北アメリカ",
+      "pt-BR": "América do Norte",
+      "ru": "Северная Америка",
+      "zh-CN": "北美洲"
+    }
+  },
+  "country": {
+    "confidence": 75,
+    "geoname_id": 6252001,
+    "iso_code": "US",
+    "names": {
+      "de": "USA",
+      "en": "United States",
+      "es": "Estados Unidos",
+      "fr": "États-Unis",
+      "ja": "アメリカ合衆国",
+      "pt-BR": "Estados Unidos",
+      "ru": "США",
+      "zh-CN": "美国"
+    }
+  },
+  "location": {
+    "accuracy_radius": 20,
+    "average_income": 128321,
+    "latitude": 37.6293,
+    "longitude": -122.1163,
+    "metro_code": 807,
+    "population_density": 7122,
+    "time_zone": "America/Los_Angeles"
+  },
+  "maxmind": {
+    "queries_remaining": 54321
+  },
+  "postal": {
+    "code": "90001",
+    "confidence": 10
+  },
+  "registered_country": {
+    "geoname_id": 6252001,
+    "iso_code": "US",
+    "is_in_european_union": false,
+    "names": {
+      "de": "USA",
+      "en": "United States",
+      "es": "Estados Unidos",
+      "fr": "États-Unis",
+      "ja": "アメリカ合衆国",
+      "pt-BR": "Estados Unidos",
+      "ru": "США",
+      "zh-CN": "美国"
+    }
+  },
+  "represented_country": {
+    "geoname_id": 6252001,
+    "iso_code": "US",
+    "names": {
+      "de": "USA",
+      "en": "United States",
+      "es": "Estados Unidos",
+      "fr": "États-Unis",
+      "ja": "アメリカ合衆国",
+      "pt-BR": "Estados Unidos",
+      "ru": "США",
+      "zh-CN": "美国"
+    },
+    "type": "military"
+  },
+  "subdivisions": [
+    {
+      "confidence": 50,
+      "geoname_id": 5332921,
+      "iso_code": "CA",
+      "names": {
+        "de": "Kalifornien",
+        "en": "California",
+        "es": "California",
+        "fr": "Californie",
+        "ja": "カリフォルニア",
+        "ru": "Калифорния",
+        "zh-CN": "加州"
+      }
+    }
+  ],
+  "traits": {
+    "autonomous_system_number": 1239,
+    "autonomous_system_organization": "Linkem IR WiMax Network",
+    "connection_type": "cable",
+    "domain": "example.com",
+    "ip_address": "11.11.11.11",
+    "ip_risk_snapshot": 42.5,
+    "is_anonymous": true,
+    "is_anonymous_proxy": true,
+    "is_anonymous_vpn": false,
+    "is_anycast": true,
+    "is_hosting_provider": false,
+    "is_legitimate_proxy": true,
+    "is_public_proxy": true,
+    "is_residential_proxy": true,
+    "is_satellite_provider": true,
+    "is_tor_exit_node": true,
+    "isp": "Linkem spa",
+    "mobile_country_code": "310",
+    "mobile_network_code": "004",
+    "network": "11.11.11.0/24",
+    "organization": "Linkem IR WiMax Network",
+    "static_ip_score": 1.3,
+    "user_count": 2,
+    "user_type": "traveler"
+  },
+  "anonymizer": {
+    "confidence": 95,
+    "is_anonymous": true,
+    "is_anonymous_vpn": true,
+    "is_hosting_provider": true,
+    "is_public_proxy": false,
+    "is_residential_proxy": false,
+    "is_tor_exit_node": false,
+    "network_last_seen": "2025-04-14",
+    "provider_name": "NordVPN",
+    "residential": {
+      "confidence": 82,
+      "network_last_seen": "2026-05-11",
+      "provider_name": "quickshift"
+    }
+  }
+}
